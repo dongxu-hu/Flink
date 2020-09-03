@@ -11,9 +11,12 @@ object StreamingWordCount {
     val environment: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
 
     //2. 接收socket文本流
-    val paramToool: ParameterTool = ParameterTool.fromArgs(args)
-    val host: String = paramToool.get("host")
-    val port: Int = paramToool.getInt("port")
+   // val paramToool: ParameterTool = ParameterTool.fromArgs(args)
+
+    val host: String = args(0)
+    val port: Int = args(1).toInt
+    //val host: String = paramToool.get("host")
+   // val port: Int = paramToool.getInt("port")
     val inputDataStream: DataStream[String] = environment.socketTextStream(host,port )
 
     //3. 对dataStream进行转换处理

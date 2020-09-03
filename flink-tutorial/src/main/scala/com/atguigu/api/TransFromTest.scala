@@ -2,6 +2,7 @@ package com.atguigu.api
 
 
 import org.apache.flink.api.common.functions.MapFunction
+import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.streaming.api.scala._
 
 
@@ -38,6 +39,7 @@ object TransFromTest {
 //    agge.print("stram2")
 
 
+
     // 3.1 分流	split 和  select
     val splStream: SplitStream[SensorReading] = dateDateStream.split(tem => {
       if (tem.temperature > 30) List("high") else List("low")
@@ -50,6 +52,7 @@ object TransFromTest {
 //    low.print()
 //    all.print()
 
+
     //3.2  连接两条流
     val temDataStream: DataStream[(Double, String)] = low.map(tem => (tem.temperature, tem.id))
     val connStream: ConnectedStreams[(Double, String), SensorReading] = temDataStream.connect(high)
@@ -58,7 +61,7 @@ object TransFromTest {
 //    resultStram.print()
 
     //3.3 连接两条流union
-    val higlowStram: DataStream[SensorReading] = high.union(low)
+    val higlowStram: DataStream[SensorReading] = high.union(low).union(all)
 //    higlowStram.print()
 
 

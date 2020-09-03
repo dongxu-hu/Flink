@@ -5,24 +5,29 @@ import org.apache.flink.api.common.functions.ReduceFunction
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 object WindowTest {
   def main(args: Array[String]): Unit = {
 
     val environment: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
-    environment.getConfig.setAutoWatermarkInterval(100)
+//    environment.getConfig.setAutoWatermarkInterval(100)
+    environment.setParallelism(1)
+
     // 设定使用事件时间语义
     environment.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // 获取数据并进行相关转换
     val inputStream: DataStream[String] = environment.socketTextStream("hadoop202", 7777)
 
-/*    val daStream: DataStream[SensorReading] = inputStream.map(date => {
+   /* val daStream: DataStream[SensorReading] = inputStream.map(date => {
       val split: Array[String] = date.split(",")
       SensorReading(split(0).trim, split(1).trim.toLong, split(2).trim.toDouble)
     })
+
+
 
      //定义使用分配器
     val wmStream: DataStream[SensorReading] = daStream
@@ -45,10 +50,11 @@ object WindowTest {
         val arr = line.split(",")
         SensorReading(arr(0).trim, arr(1).trim.toLong, arr(2).trim.toDouble)
       })
-      .assignAscendingTimestamps( data => data.timestamp * 1000L )    // 升序数据的时间戳提取
-      .assignTimestampsAndWatermarks( new BoundedOutOfOrdernessTimestampExtractor[SensorReading](Time.seconds(3)) {
-        override def extractTimestamp(element: SensorReading): Long = element.timestamp * 1000L
-      } )
+    //  .assignAscendingTimestamps( data => data.timestamp * 1000L )    // 升序数据的时间戳提取
+      //.assignTimestampsAndWatermarks( new BoundedOutOfOrdernessTimestampExtractor[SensorReading](Time.seconds(3)) {
+    //    override def extractTimestamp(element: SensorReading): Long = element.timestamp * 1000L
+    //  } )
+
 
     // 开窗聚合操作
     val aggStream = dataStream
@@ -59,9 +65,11 @@ object WindowTest {
       .sideOutputLateData(new OutputTag[SensorReading]("late-data"))
       .reduce( new MyMaxTemp() )
 
+
     aggStream.getSideOutput(new OutputTag[SensorReading]("late-data")).print("late")
+
     dataStream.print("date")
-    aggStream.print("event time")
+    aggStream.print("agg")
 
     environment.execute()
 

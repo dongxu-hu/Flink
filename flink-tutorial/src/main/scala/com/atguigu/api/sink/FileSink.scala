@@ -31,6 +31,8 @@ object FileSink {
     dateDateStream.addSink(StreamingFileSink.
       forRowFormat(new Path(Output),new SimpleStringEncoder[SensorReading]("UTF-8")).build())
 
+
+
     environment.execute()
 
   }

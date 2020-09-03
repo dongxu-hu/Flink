@@ -52,9 +52,9 @@ object SourceTest {
 
 
     //5. 自定义source
-//    val inputStream5: DataStream[SensorReading] = environment.addSource(new MySensorSource)
-    val inputStream5: DataStream[SensorReading] = environment.addSource(new mySouce)
-//    inputStream5.print()
+    val inputStream5: DataStream[SensorReading] = environment.addSource(new MySensorSource)
+//    val inputStream5: DataStream[SensorReading] = environment.addSource(new mySouce)
+    inputStream5.print()
 
     //执行
     environment.execute("stram5")
@@ -63,23 +63,19 @@ object SourceTest {
   }
 }
 
-// 自定义的SourceFunction
+// 自定义的SourceFunction, 继承SourceFunction
 class MySensorSource() extends SourceFunction[SensorReading]{
 
   // 定义一个标识位，用来指示是否正常生成数据
   var running : Boolean = true
 
   override def run(sourceContext: SourceFunction.SourceContext[SensorReading]): Unit = {
-
     // 定义一个随机数发生器
     val random = new Random()
-
     // 随机初始化10个传感器的温度器，之后在此基础上随机波动
     val curTemList: immutable.IndexedSeq[(String, Double)] = 1.to(10).map(i => ("sensor_" + i, 60 + (random.nextGaussian())*10 ))
-
     // 无限循环，生成随机的传感器数据
     while (running){
-
       // 在之前温度基础上随机波动一点，改变温度值
       val curTempList: immutable.IndexedSeq[(String, Double)] = curTemList.map(
         curTem => (curTem._1, curTem._2+random.nextGaussian() )
@@ -88,14 +84,12 @@ class MySensorSource() extends SourceFunction[SensorReading]{
 
       // 获取当前的时间戳
       val curTs: Long = System.currentTimeMillis()
-
       // 将数据包装成样例类，用ctx输出
       curTempList.foreach(
         curTemTuple =>sourceContext.collect(SensorReading(curTemTuple._1,curTs,curTemTuple._2))
       )
-
       // 间隔1s
-      Thread.sleep(1000)
+      Thread.sleep(5000)
     }
   }
 

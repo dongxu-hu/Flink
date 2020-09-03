@@ -38,11 +38,13 @@ object RedisSink {
 
 class MyRdisMapper() extends RedisMapper[SensorReading]{
   override def getCommandDescription: RedisCommandDescription =
-   // new RedisCommandDescription(RedisCommand.HSET, "sensor")
-  new RedisCommandDescription(RedisCommand.SET,"fist")
+    new RedisCommandDescription(RedisCommand.HSET, "sensor")
+//  new RedisCommandDescription(RedisCommand.SET,"fist")
 
 
   override def getKeyFromData(t: SensorReading): String = t.id
 
   override def getValueFromData(t: SensorReading): String = t.temperature.toString
 }
+
+

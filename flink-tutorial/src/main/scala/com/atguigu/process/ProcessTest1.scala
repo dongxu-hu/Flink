@@ -1,8 +1,7 @@
-package com.atguigu
-
+package com.atguigu.process
 
 import com.atguigu.api.SensorReading
-import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, ValueState, ValueStateDescriptor}
+import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.streaming.api.scala._
@@ -13,25 +12,22 @@ object ProcessTest1 {
   def main(args: Array[String]): Unit = {
     //  环境
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
-
-
     val inputStream: DataStream[String] = env.socketTextStream("hadoop202", 7777)
 
     val dateStream: DataStream[SensorReading] = inputStream.map(date => {
       val split: Array[String] = date.split(",")
-      SensorReading(split(0).trim, split(1).trim.toLong, split(2).trim.toDouble)
-    })
+      SensorReading(split(0).trim, split(1).trim.toLong, split(2).trim.toDouble)    })
 
     // 需求： 检测10秒钟内温度是否连续上升，如果上升，那么报警
-    val warnStram = dateStream
-        .keyBy(0)
-        .process( new TemIncreaWarning(10000L))
-
+//    val warnStram = dateStream
+//        .keyBy(0)
+//        .process( new TemIncreaWarning(10000L))
+val warnStram: DataStream[String] = dateStream
+  .keyBy(0)
+  .process(new TemIncreaWarning(10000L))
 
     warnStram.print()
     env.execute("process function test")
-
-
   }
 }
 
@@ -46,14 +42,12 @@ class TemIncreaWarning(time: Long) extends KeyedProcessFunction[Tuple,SensorRead
   lazy val curTimeState : ValueState[Long]=getRuntimeContext
     .getState(new ValueStateDescriptor[Long]("current-tem",classOf[Long]))
 
-  override def processElement(i: SensorReading,
-                              context: KeyedProcessFunction[Tuple, SensorReading, String]#Context,
+  override def processElement(i: SensorReading,context: KeyedProcessFunction[Tuple, SensorReading, String]#Context,
                               collector: Collector[String]): Unit = {
 
     // 取出状态
     val lasttmp = lastTemStar.value()
     var curtmp = curTimeState.value()
-
     lastTemStar.update(i.temperature)
 
     // 如果温度上升，并且没有定时器，注册一个10秒后的定时器
@@ -68,9 +62,8 @@ class TemIncreaWarning(time: Long) extends KeyedProcessFunction[Tuple,SensorRead
       curTimeState.clear()
 
     }
-
   }
-
+  //设置定时器
   override def onTimer(timestamp: Long,
                        ctx: KeyedProcessFunction[Tuple, SensorReading, String]#OnTimerContext,
                        out: Collector[String]): Unit = {
