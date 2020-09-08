@@ -76,7 +76,6 @@ class MykeyedProcessfunction extends KeyedProcessFunction[Tuple,SensorReading,In
       println("timer occur")
       ctx.output(new OutputTag[Int]("side"),15)
       out.collect(23)
-
     }
 
   override def close(): Unit = super.close()
