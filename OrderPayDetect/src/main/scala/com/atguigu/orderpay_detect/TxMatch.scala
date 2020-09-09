@@ -10,6 +10,8 @@ import org.apache.flink.util.Collector
 // 到账事件样例类
 case class ReceiptlEvent(txId:String,PayChannel:String,timestamp:Long)
 
+
+// 需求：  双流join，使用connect
 object TxMatch {
   def main(args: Array[String]): Unit = {
 

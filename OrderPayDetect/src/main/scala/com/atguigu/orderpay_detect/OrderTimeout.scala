@@ -56,7 +56,6 @@ object OrderTimeout {
 class OrderpaySelect() extends PatternSelectFunction[OrderEvent,OrderPayResult]{
   override def select(map: util.Map[String, util.List[OrderEvent]]): OrderPayResult = {
     val orderId: Long = map.get("pay").iterator().next().orderId
-
     OrderPayResult(orderId,"pay succssfully")
   }
 }
